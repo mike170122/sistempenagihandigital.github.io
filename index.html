@@ -1,1 +1,788 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Pengelolaan Penagihan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+        .offline-overlay {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 font-sans">
+    <!-- Offline Notice -->
+    <div id="offlineNotice" class="fixed inset-0 offline-overlay flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mx-4 text-center max-w-md">
+            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-moon text-gray-600 text-3xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Aplikasi Sedang Offline</h2>
+            <p class="text-gray-600 mb-4">Sistem penagihan beroperasi dari jam 07:00 - 24:00</p>
+            <p class="text-sm text-gray-500">Silakan kembali pada jam operasional</p>
+            <div id="currentTime" class="mt-4 text-lg font-semibold text-indigo-600"></div>
+        </div>
+    </div>
 
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 fade-in">
+            <div class="p-6 sm:p-8">
+                <div class="text-center mb-6">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file-invoice-dollar text-white text-2xl"></i>
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800">Sistem Penagihan</h2>
+                    <p class="text-gray-600 mt-2 text-sm sm:text-base">Kelola data penagihan dengan mudah</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="loginForm" class="space-y-4">
+                    <div>
+                        <label for="loginEmail" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="loginEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label for="loginPassword" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="loginPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 text-sm sm:text-base">
+                        Masuk
+                    </button>
+                </form>
+
+                <!-- Register Form (Hidden) -->
+                <form id="registerForm" class="space-y-4 hidden">
+                    <div>
+                        <label for="registerName" class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                        <input type="text" id="registerName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label for="registerEmail" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                        <input type="email" id="registerEmail" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label for="registerPassword" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="registerPassword" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                    </div>
+                    <div>
+                        <label for="registerRole" class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                        <select id="registerRole" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                            <option value="">Pilih Role</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 transition-all transform hover:scale-105 text-sm sm:text-base">
+                        Daftar
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <button id="toggleAuth" class="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                        Belum punya akun? Daftar di sini
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden h-full flex flex-col">
+        <!-- Header -->
+        <header class="bg-white shadow-lg border-b border-gray-200">
+            <div class="px-4 sm:px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-file-invoice-dollar text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl font-bold text-gray-800">Sistem Penagihan</h1>
+                            <p class="text-xs sm:text-sm text-gray-600" id="userWelcome">Selamat datang!</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="text-xs sm:text-sm text-gray-600" id="liveTime"></div>
+                        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm">
+                            <i class="fas fa-sign-out-alt mr-1"></i>Keluar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-white border-b border-gray-200 px-4 sm:px-6">
+            <div class="flex space-x-1 overflow-x-auto">
+                <button class="nav-btn active px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </button>
+                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="billing">
+                    <i class="fas fa-plus-circle mr-2"></i>Input Tagihan
+                </button>
+                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="history" id="historyTab">
+                    <i class="fas fa-history mr-2"></i>Riwayat
+                </button>
+                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="reports" id="reportsTab">
+                    <i class="fas fa-chart-bar mr-2"></i>Laporan
+                </button>
+            </div>
+        </nav>
+
+        <!-- Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content p-4 sm:p-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Total Tagihan</p>
+                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="totalBills">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Lunas</p>
+                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="paidBills">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-yellow-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Pending</p>
+                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="pendingBills">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-600">Belum Lunas</p>
+                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="overdueBills">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tagihan Terbaru</h3>
+                    <div class="overflow-x-auto">
+                        <div id="recentBills" class="space-y-3">
+                            <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Input Tab -->
+            <div id="billing" class="tab-content hidden p-4 sm:p-6">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-6">Input Data Tagihan</h3>
+                    <form id="billingForm" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="customerName" class="block text-sm font-medium text-gray-700 mb-2">Nama Pelanggan</label>
+                                <input type="text" id="customerName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                            </div>
+                            <div>
+                                <label for="customerPhone" class="block text-sm font-medium text-gray-700 mb-2">No. Telepon</label>
+                                <input type="tel" id="customerPhone" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="customerAddress" class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
+                            <textarea id="customerAddress" required rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="billAmount" class="block text-sm font-medium text-gray-700 mb-2">Jumlah Tagihan (Rp)</label>
+                                <input type="number" id="billAmount" required min="0" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                            </div>
+                            <div>
+                                <label for="dueDate" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Jatuh Tempo</label>
+                                <input type="date" id="dueDate" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="paymentMethod" class="block text-sm font-medium text-gray-700 mb-2">Metode Pembayaran</label>
+                                <select id="paymentMethod" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                                    <option value="">Pilih Metode Pembayaran</option>
+                                    <option value="tunai">Tunai</option>
+                                    <option value="transfer">Transfer</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="billStatus" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                                <select id="billStatus" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                                    <option value="">Pilih Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Lunas</option>
+                                    <option value="overdue">Belum Lunas</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="officerName" class="block text-sm font-medium text-gray-700 mb-2">Nama Petugas</label>
+                            <select id="officerName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base">
+                                <option value="">Pilih Nama Petugas</option>
+                                <option value="Mario Haulussy">Mario Haulussy</option>
+                                <option value="Macho Haulussy">Macho Haulussy</option>
+                                <option value="Ryan Pattiwael">Ryan Pattiwael</option>
+                                <option value="Stevy Wuarlela">Stevy Wuarlela</option>
+                                <option value="Stevian Lauluw">Stevian Lauluw</option>
+                                <option value="Gilberd">Gilberd</option>
+                                <option value="Glen Tansora">Glen Tansora</option>
+                                <option value="Glen Ohman">Glen Ohman</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="billDescription" class="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                            <textarea id="billDescription" rows="3" placeholder="Masukkan keterangan tambahan (opsional)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 text-sm sm:text-base">
+                            <i class="fas fa-save mr-2"></i>Simpan Tagihan
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history" class="tab-content hidden p-4 sm:p-6">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Riwayat Tagihan</h3>
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                            <input type="text" id="searchInput" placeholder="Cari nama pelanggan..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                            <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                <option value="">Semua Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Lunas</option>
+                                <option value="overdue">Belum Lunas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div id="billsList" class="space-y-3">
+                            <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content hidden p-4 sm:p-6">
+                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Laporan & Export</h3>
+                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                            <button id="exportExcel" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-file-excel mr-2"></i>Export Excel
+                            </button>
+                            <button id="exportPDF" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-4">Ringkasan Bulanan</h4>
+                            <div id="monthlyReport" class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Total Tagihan:</span>
+                                    <span class="font-semibold" id="monthlyTotal">Rp 0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Sudah Dibayar:</span>
+                                    <span class="font-semibold text-green-600" id="monthlyPaid">Rp 0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Belum Dibayar:</span>
+                                    <span class="font-semibold text-red-600" id="monthlyUnpaid">Rp 0</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-gray-800 mb-4">Metode Pembayaran</h4>
+                            <div id="paymentMethodReport" class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Tunai:</span>
+                                    <span class="font-semibold" id="cashCount">0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Transfer:</span>
+                                    <span class="font-semibold" id="transferCount">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full text-center fade-in">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-check text-green-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Berhasil!</h3>
+            <p id="successMessage" class="text-gray-600 mb-4">Data berhasil disimpan</p>
+            <button id="closeSuccessModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                OK
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Application state
+        let currentUser = null;
+        let bills = JSON.parse(localStorage.getItem('bills')) || [];
+        let users = JSON.parse(localStorage.getItem('users')) || [
+            { id: 1, name: 'Admin', email: 'admin@admin.com', password: 'admin123', role: 'admin' },
+            { id: 2, name: 'User', email: 'user@user.com', password: 'user123', role: 'user' }
+        ];
+
+        // Check operating hours (7 AM to 12 AM)
+        function checkOperatingHours() {
+            const now = new Date();
+            const hour = now.getHours();
+            
+            if (hour < 7 || hour >= 24) {
+                document.getElementById('offlineNotice').classList.remove('hidden');
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('mainApp').classList.add('hidden');
+                return false;
+            } else {
+                document.getElementById('offlineNotice').classList.add('hidden');
+                return true;
+            }
+        }
+
+        // Update live time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID');
+            const dateString = now.toLocaleDateString('id-ID');
+            
+            document.getElementById('liveTime').textContent = `${dateString} ${timeString}`;
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Initialize app
+        function initApp() {
+            if (!checkOperatingHours()) {
+                setInterval(checkOperatingHours, 60000); // Check every minute
+                setInterval(updateTime, 1000);
+                return;
+            }
+
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(checkOperatingHours, 60000);
+
+            // Check if user is logged in
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                showMainApp();
+            }
+        }
+
+        // Authentication functions
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showMainApp();
+            } else {
+                showMessage('Email atau password salah!', 'error');
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            
+            if (users.find(u => u.email === email)) {
+                showMessage('Email sudah terdaftar!', 'error');
+                return;
+            }
+            
+            const newUser = {
+                id: users.length + 1,
+                name,
+                email,
+                password,
+                role
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            showMessage('Registrasi berhasil! Silakan login.', 'success');
+            toggleAuthForm();
+        });
+
+        document.getElementById('toggleAuth').addEventListener('click', toggleAuthForm);
+
+        function toggleAuthForm() {
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const toggleBtn = document.getElementById('toggleAuth');
+            
+            if (loginForm.classList.contains('hidden')) {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                toggleBtn.textContent = 'Belum punya akun? Daftar di sini';
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                toggleBtn.textContent = 'Sudah punya akun? Login di sini';
+            }
+        }
+
+        function showMainApp() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            document.getElementById('userWelcome').textContent = `Selamat datang, ${currentUser.name}!`;
+            
+            // Hide admin-only tabs for regular users
+            if (currentUser.role !== 'admin') {
+                document.getElementById('reportsTab').style.display = 'none';
+            }
+            
+            updateDashboard();
+            loadBillsHistory();
+        }
+
+        // Logout function
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('authModal').classList.remove('hidden');
+        });
+
+        // Tab navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabName = this.dataset.tab;
+                showTab(tabName);
+            });
+        });
+
+        function showTab(tabName) {
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+                btn.classList.add('text-gray-600', 'hover:text-gray-800');
+            });
+            
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('text-gray-600', 'hover:text-gray-800');
+            
+            // Show/hide content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            document.getElementById(tabName).classList.remove('hidden');
+            
+            if (tabName === 'reports') {
+                updateReports();
+            }
+        }
+
+        // Billing form
+        document.getElementById('billingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                id: Date.now(),
+                customerName: document.getElementById('customerName').value,
+                customerPhone: document.getElementById('customerPhone').value,
+                customerAddress: document.getElementById('customerAddress').value,
+                amount: parseFloat(document.getElementById('billAmount').value),
+                dueDate: document.getElementById('dueDate').value,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                status: document.getElementById('billStatus').value,
+                description: document.getElementById('billDescription').value,
+                officerName: document.getElementById('officerName').value,
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.name
+            };
+            
+            bills.push(formData);
+            localStorage.setItem('bills', JSON.stringify(bills));
+            
+            // Reset form
+            this.reset();
+            
+            // Show success message
+            showSuccessModal('Data tagihan berhasil disimpan!');
+            
+            // Update dashboard and history
+            updateDashboard();
+            loadBillsHistory();
+        });
+
+        // Dashboard functions
+        function updateDashboard() {
+            const totalBills = bills.length;
+            const paidBills = bills.filter(bill => bill.status === 'paid').length;
+            const pendingBills = bills.filter(bill => bill.status === 'pending').length;
+            const overdueBills = bills.filter(bill => bill.status === 'overdue').length;
+            
+            document.getElementById('totalBills').textContent = totalBills;
+            document.getElementById('paidBills').textContent = paidBills;
+            document.getElementById('pendingBills').textContent = pendingBills;
+            document.getElementById('overdueBills').textContent = overdueBills;
+            
+            // Show recent bills
+            const recentBills = bills.slice(-5).reverse();
+            const recentBillsContainer = document.getElementById('recentBills');
+            
+            if (recentBills.length === 0) {
+                recentBillsContainer.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>';
+            } else {
+                recentBillsContainer.innerHTML = recentBills.map(bill => `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-gray-50 rounded-lg space-y-2 sm:space-y-0">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-800">${bill.customerName}</h4>
+                            <p class="text-sm text-gray-600">${bill.customerPhone}</p>
+                            <p class="text-sm text-gray-500">${bill.paymentMethod}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-gray-800">Rp ${bill.amount.toLocaleString('id-ID')}</p>
+                            <span class="inline-block px-2 py-1 text-xs rounded-full ${getStatusColor(bill.status)}">${getStatusText(bill.status)}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // History functions
+        function loadBillsHistory() {
+            const billsList = document.getElementById('billsList');
+            let filteredBills = bills;
+            
+            // Apply filters
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            if (searchTerm) {
+                filteredBills = filteredBills.filter(bill => 
+                    bill.customerName.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            if (statusFilter) {
+                filteredBills = filteredBills.filter(bill => bill.status === statusFilter);
+            }
+            
+            if (filteredBills.length === 0) {
+                billsList.innerHTML = '<p class="text-gray-500 text-center py-8">Tidak ada data yang ditemukan</p>';
+            } else {
+                billsList.innerHTML = filteredBills.reverse().map(bill => `
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-800">${bill.customerName}</h4>
+                                <p class="text-sm text-gray-600">${bill.customerPhone}</p>
+                                <p class="text-sm text-gray-500">${bill.customerAddress}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-semibold text-lg text-gray-800">Rp ${bill.amount.toLocaleString('id-ID')}</p>
+                                <span class="inline-block px-3 py-1 text-sm rounded-full ${getStatusColor(bill.status)}">${getStatusText(bill.status)}</span>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-gray-600">
+                            <div><strong>Jatuh Tempo:</strong> ${new Date(bill.dueDate).toLocaleDateString('id-ID')}</div>
+                            <div><strong>Metode:</strong> ${bill.paymentMethod}</div>
+                            <div><strong>Dibuat:</strong> ${new Date(bill.createdAt).toLocaleDateString('id-ID')}</div>
+                        </div>
+                        ${bill.officerName ? `<div class="text-sm text-gray-600"><strong>Petugas:</strong> ${bill.officerName}</div>` : ''}
+                        ${bill.description ? `<div class="text-sm text-gray-600"><strong>Keterangan:</strong> ${bill.description}</div>` : ''}
+                        <div class="text-xs text-gray-500">Dibuat oleh: ${bill.createdBy}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', loadBillsHistory);
+        document.getElementById('statusFilter').addEventListener('change', loadBillsHistory);
+
+        // Reports functions
+        function updateReports() {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const monthlyBills = bills.filter(bill => {
+                const billDate = new Date(bill.createdAt);
+                return billDate.getMonth() === currentMonth && billDate.getFullYear() === currentYear;
+            });
+            
+            const totalAmount = monthlyBills.reduce((sum, bill) => sum + bill.amount, 0);
+            const paidAmount = monthlyBills.filter(bill => bill.status === 'paid').reduce((sum, bill) => sum + bill.amount, 0);
+            const unpaidAmount = totalAmount - paidAmount;
+            
+            document.getElementById('monthlyTotal').textContent = `Rp ${totalAmount.toLocaleString('id-ID')}`;
+            document.getElementById('monthlyPaid').textContent = `Rp ${paidAmount.toLocaleString('id-ID')}`;
+            document.getElementById('monthlyUnpaid').textContent = `Rp ${unpaidAmount.toLocaleString('id-ID')}`;
+            
+            // Payment method counts
+            const cashCount = bills.filter(bill => bill.paymentMethod === 'tunai').length;
+            const transferCount = bills.filter(bill => bill.paymentMethod === 'transfer').length;
+            
+            document.getElementById('cashCount').textContent = cashCount;
+            document.getElementById('transferCount').textContent = transferCount;
+        }
+
+        // Export functions
+        document.getElementById('exportExcel').addEventListener('click', function() {
+            const ws = XLSX.utils.json_to_sheet(bills.map(bill => ({
+                'Nama Pelanggan': bill.customerName,
+                'No. Telepon': bill.customerPhone,
+                'Alamat': bill.customerAddress,
+                'Jumlah': bill.amount,
+                'Jatuh Tempo': bill.dueDate,
+                'Metode Pembayaran': bill.paymentMethod,
+                'Status': bill.status,
+                'Nama Petugas': bill.officerName || '',
+                'Keterangan': bill.description || '',
+                'Tanggal Dibuat': new Date(bill.createdAt).toLocaleDateString('id-ID'),
+                'Dibuat Oleh': bill.createdBy
+            })));
+            
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Data Tagihan');
+            XLSX.writeFile(wb, `data-tagihan-${new Date().toISOString().split('T')[0]}.xlsx`);
+        });
+
+        document.getElementById('exportPDF').addEventListener('click', function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            doc.text('Laporan Data Tagihan', 20, 20);
+            doc.text(`Tanggal: ${new Date().toLocaleDateString('id-ID')}`, 20, 30);
+            
+            let yPosition = 50;
+            bills.forEach((bill, index) => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                doc.text(`${index + 1}. ${bill.customerName}`, 20, yPosition);
+                doc.text(`   Jumlah: Rp ${bill.amount.toLocaleString('id-ID')}`, 20, yPosition + 10);
+                doc.text(`   Status: ${getStatusText(bill.status)}`, 20, yPosition + 20);
+                doc.text(`   Metode: ${bill.paymentMethod}`, 20, yPosition + 30);
+                doc.text(`   Petugas: ${bill.officerName || '-'}`, 20, yPosition + 40);
+                
+                yPosition += 55;
+            });
+            
+            doc.save(`laporan-tagihan-${new Date().toISOString().split('T')[0]}.pdf`);
+        });
+
+        // Utility functions
+        function getStatusColor(status) {
+            switch (status) {
+                case 'paid': return 'bg-green-100 text-green-800';
+                case 'pending': return 'bg-yellow-100 text-yellow-800';
+                case 'overdue': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'paid': return 'Lunas';
+                case 'pending': return 'Pending';
+                case 'overdue': return 'Belum Lunas';
+                default: return 'Unknown';
+            }
+        }
+
+        function showMessage(message, type) {
+            // Simple message display - you can enhance this
+            if (type === 'error') {
+                document.getElementById('successMessage').textContent = message;
+                document.getElementById('successModal').classList.remove('hidden');
+            }
+        }
+
+        function showSuccessModal(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        document.getElementById('closeSuccessModal').addEventListener('click', function() {
+            document.getElementById('successModal').classList.add('hidden');
+        });
+
+        // Initialize the application
+        initApp();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993f3ea2c16c40a3',t:'MTc2MTM2OTQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

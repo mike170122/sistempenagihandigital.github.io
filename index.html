@@ -29,6 +29,18 @@
         .offline-overlay {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        .sidebar-btn {
+            color: #6b7280;
+        }
+        .sidebar-btn:hover {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        .sidebar-btn.active {
+            background-color: #dbeafe;
+            color: #2563eb;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body class="h-full bg-gradient-to-br from-blue-50 to-indigo-100 font-sans">
@@ -109,114 +121,152 @@
     </div>
 
     <!-- Main Application -->
-    <div id="mainApp" class="hidden h-full flex flex-col">
-        <!-- Header -->
-        <header class="bg-white shadow-lg border-b border-gray-200">
-            <div class="px-4 sm:px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-file-invoice-dollar text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h1 class="text-lg sm:text-xl font-bold text-gray-800">Sistem Penagihan</h1>
-                            <p class="text-xs sm:text-sm text-gray-600" id="userWelcome">Selamat datang!</p>
-                        </div>
+    <div id="mainApp" class="hidden h-full flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-gray-200">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-file-invoice-dollar text-white text-lg"></i>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <div class="text-xs sm:text-sm text-gray-600" id="liveTime"></div>
-                        <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors text-xs sm:text-sm">
-                            <i class="fas fa-sign-out-alt mr-1"></i>Keluar
+                    <div>
+                        <h1 class="text-lg font-bold text-gray-800">Sistem Penagihan</h1>
+                        <p class="text-xs text-gray-600" id="userWelcome">Selamat datang!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Navigation -->
+            <nav class="flex-1 p-4">
+                <ul class="space-y-2">
+                    <li>
+                        <button class="sidebar-btn active w-full text-left px-4 py-3 rounded-lg transition-colors" data-tab="dashboard">
+                            <i class="fas fa-tachometer-alt mr-3 w-4"></i>Dashboard
                         </button>
+                    </li>
+                    <li>
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2">Data Tagihan</div>
+                        <ul class="space-y-1">
+                            <li>
+                                <button class="sidebar-btn w-full text-left px-4 py-2 rounded-lg transition-colors text-sm" data-tab="billing">
+                                    <i class="fas fa-plus-circle mr-3 w-4"></i>Tambah Tagihan
+                                </button>
+                            </li>
+                            <li>
+                                <button class="sidebar-btn w-full text-left px-4 py-2 rounded-lg transition-colors text-sm" data-tab="history">
+                                    <i class="fas fa-list mr-3 w-4"></i>Kelola Tagihan
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2 mt-4">Laporan</div>
+                        <ul class="space-y-1">
+                            <li>
+                                <button class="sidebar-btn w-full text-left px-4 py-2 rounded-lg transition-colors text-sm" data-tab="reports" id="reportsTab">
+                                    <i class="fas fa-chart-bar mr-3 w-4"></i>Laporan & Export
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-gray-200">
+                <div class="text-xs text-gray-600 mb-2" id="liveTime"></div>
+                <button id="logoutBtn" class="w-full bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors text-sm">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Keluar
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <h2 id="pageTitle" class="text-xl font-semibold text-gray-800">Dashboard</h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600">Online</span>
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <!-- Navigation -->
-        <nav class="bg-white border-b border-gray-200 px-4 sm:px-6">
-            <div class="flex space-x-1 overflow-x-auto">
-                <button class="nav-btn active px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="dashboard">
-                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                </button>
-                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="billing">
-                    <i class="fas fa-plus-circle mr-2"></i>Input Tagihan
-                </button>
-                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="history" id="historyTab">
-                    <i class="fas fa-history mr-2"></i>Riwayat
-                </button>
-                <button class="nav-btn px-4 py-3 text-sm font-medium rounded-t-lg whitespace-nowrap" data-tab="reports" id="reportsTab">
-                    <i class="fas fa-chart-bar mr-2"></i>Laporan
-                </button>
-            </div>
-        </nav>
+            <!-- Content Area -->
+            <main class="flex-1 overflow-y-auto bg-gray-50">
+                <!-- Dashboard Tab -->
+                <div id="dashboard" class="tab-content p-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Total Tagihan</p>
+                                    <p class="text-2xl font-bold text-gray-800" id="totalBills">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Lunas</p>
+                                    <p class="text-2xl font-bold text-gray-800" id="paidBills">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-yellow-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Pending</p>
+                                    <p class="text-2xl font-bold text-gray-800" id="pendingBills">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-600">Belum Lunas</p>
+                                    <p class="text-2xl font-bold text-gray-800" id="overdueBills">0</p>
+                                </div>
+                                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto">
-            <!-- Dashboard Tab -->
-            <div id="dashboard" class="tab-content p-4 sm:p-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-blue-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Total Tagihan</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="totalBills">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-green-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Lunas</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="paidBills">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-yellow-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Pending</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="pendingBills">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border-l-4 border-red-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-600">Belum Lunas</p>
-                                <p class="text-xl sm:text-2xl font-bold text-gray-800" id="overdueBills">0</p>
-                            </div>
-                            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Tagihan Terbaru</h3>
+                        <div class="overflow-x-auto">
+                            <div id="recentBills" class="space-y-3">
+                                <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Tagihan Terbaru</h3>
-                    <div class="overflow-x-auto">
-                        <div id="recentBills" class="space-y-3">
-                            <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
+                <!-- Billing Input Tab -->
+                <div id="billing" class="tab-content hidden p-6">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-xl font-semibold text-gray-800" id="formTitle">Tambah Data Tagihan</h3>
+                            <button id="cancelEdit" class="hidden bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                <i class="fas fa-times mr-2"></i>Batal Edit
+                            </button>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Billing Input Tab -->
-            <div id="billing" class="tab-content hidden p-4 sm:p-6">
-                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                    <h3 class="text-lg sm:text-xl font-semibold text-gray-800 mb-6">Input Data Tagihan</h3>
-                    <form id="billingForm" class="space-y-4">
+                        <form id="billingForm" class="space-y-4">
+                            <input type="hidden" id="editId" value="">
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label for="customerName" class="block text-sm font-medium text-gray-700 mb-2">Nama Pelanggan</label>
@@ -284,86 +334,89 @@
                             <textarea id="billDescription" rows="3" placeholder="Masukkan keterangan tambahan (opsional)" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm sm:text-base"></textarea>
                         </div>
 
-                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 text-sm sm:text-base">
-                            <i class="fas fa-save mr-2"></i>Simpan Tagihan
-                        </button>
+                            <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 text-sm sm:text-base">
+                                <i class="fas fa-save mr-2"></i><span id="submitText">Simpan Tagihan</span>
+                            </button>
                     </form>
                 </div>
             </div>
 
-            <!-- History Tab -->
-            <div id="history" class="tab-content hidden p-4 sm:p-6">
-                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-                        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Riwayat Tagihan</h3>
-                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                            <input type="text" id="searchInput" placeholder="Cari nama pelanggan..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                            <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
-                                <option value="">Semua Status</option>
-                                <option value="pending">Pending</option>
-                                <option value="paid">Lunas</option>
-                                <option value="overdue">Belum Lunas</option>
-                            </select>
+                <!-- History Tab -->
+                <div id="history" class="tab-content hidden p-6">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                            <h3 class="text-xl font-semibold text-gray-800">Kelola Data Tagihan</h3>
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                                <input type="text" id="searchInput" placeholder="Cari nama pelanggan..." class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                <select id="statusFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm">
+                                    <option value="">Semua Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Lunas</option>
+                                    <option value="overdue">Belum Lunas</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <div id="billsList" class="space-y-3">
-                            <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
+                        <div class="overflow-x-auto">
+                            <div id="billsList" class="space-y-3">
+                                <p class="text-gray-500 text-center py-8">Belum ada data tagihan</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Reports Tab -->
-            <div id="reports" class="tab-content hidden p-4 sm:p-6">
-                <div class="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
-                        <h3 class="text-lg sm:text-xl font-semibold text-gray-800">Laporan & Export</h3>
-                        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                            <button id="exportExcel" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                                <i class="fas fa-file-excel mr-2"></i>Export Excel
-                            </button>
-                            <button id="exportPDF" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
-                                <i class="fas fa-file-pdf mr-2"></i>Export PDF
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-800 mb-4">Ringkasan Bulanan</h4>
-                            <div id="monthlyReport" class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Total Tagihan:</span>
-                                    <span class="font-semibold" id="monthlyTotal">Rp 0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Sudah Dibayar:</span>
-                                    <span class="font-semibold text-green-600" id="monthlyPaid">Rp 0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Belum Dibayar:</span>
-                                    <span class="font-semibold text-red-600" id="monthlyUnpaid">Rp 0</span>
-                                </div>
+                <!-- Reports Tab -->
+                <div id="reports" class="tab-content hidden p-6">
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 space-y-4 sm:space-y-0">
+                            <h3 class="text-xl font-semibold text-gray-800">Laporan & Export</h3>
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                                <button id="exportExcel" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                    <i class="fas fa-file-excel mr-2"></i>Export Excel
+                                </button>
+                                <button id="exportPDF" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm">
+                                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                                </button>
                             </div>
                         </div>
                         
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-800 mb-4">Metode Pembayaran</h4>
-                            <div id="paymentMethodReport" class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Tunai:</span>
-                                    <span class="font-semibold" id="cashCount">0</span>
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-4">Ringkasan Bulanan</h4>
+                                <div id="monthlyReport" class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Total Tagihan:</span>
+                                        <span class="font-semibold" id="monthlyTotal">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Sudah Dibayar:</span>
+                                        <span class="font-semibold text-green-600" id="monthlyPaid">Rp 0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Belum Dibayar:</span>
+                                        <span class="font-semibold text-red-600" id="monthlyUnpaid">Rp 0</span>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Transfer:</span>
-                                    <span class="font-semibold" id="transferCount">0</span>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <h4 class="font-semibold text-gray-800 mb-4">Metode Pembayaran</h4>
+                                <div id="paymentMethodReport" class="space-y-2">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Tunai:</span>
+                                        <span class="font-semibold" id="cashCount">0</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-600">Transfer:</span>
+                                        <span class="font-semibold" id="transferCount">0</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
+        </div>
+    </div>
         </main>
     </div>
 
@@ -378,6 +431,25 @@
             <button id="closeSuccessModal" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
                 OK
             </button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 mx-4 max-w-sm w-full text-center fade-in">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash text-red-600 text-2xl"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mb-2">Konfirmasi Hapus</h3>
+            <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus data tagihan ini? Tindakan ini tidak dapat dibatalkan.</p>
+            <div class="flex space-x-3">
+                <button id="cancelDelete" class="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button id="confirmDelete" class="flex-1 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Hapus
+                </button>
+            </div>
         </div>
     </div>
 
@@ -523,7 +595,7 @@
         });
 
         // Tab navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
+        document.querySelectorAll('.sidebar-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 const tabName = this.dataset.tab;
                 showTab(tabName);
@@ -531,14 +603,21 @@
         });
 
         function showTab(tabName) {
-            // Update nav buttons
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active', 'bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
-                btn.classList.add('text-gray-600', 'hover:text-gray-800');
+            // Update sidebar buttons
+            document.querySelectorAll('.sidebar-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
             
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active', 'bg-blue-50', 'text-blue-600', 'border-b-2', 'border-blue-600');
-            document.querySelector(`[data-tab="${tabName}"]`).classList.remove('text-gray-600', 'hover:text-gray-800');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update page title
+            const titles = {
+                'dashboard': 'Dashboard',
+                'billing': 'Tambah Data Tagihan',
+                'history': 'Kelola Data Tagihan',
+                'reports': 'Laporan & Export'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Dashboard';
             
             // Show/hide content
             document.querySelectorAll('.tab-content').forEach(content => {
@@ -552,12 +631,18 @@
             }
         }
 
+        // CRUD Variables
+        let editingId = null;
+        let deleteId = null;
+
         // Billing form
         document.getElementById('billingForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
+            const editId = document.getElementById('editId').value;
+            
             const formData = {
-                id: Date.now(),
+                id: editId ? parseInt(editId) : Date.now(),
                 customerName: document.getElementById('customerName').value,
                 customerPhone: document.getElementById('customerPhone').value,
                 customerAddress: document.getElementById('customerAddress').value,
@@ -567,22 +652,101 @@
                 status: document.getElementById('billStatus').value,
                 description: document.getElementById('billDescription').value,
                 officerName: document.getElementById('officerName').value,
-                createdAt: new Date().toISOString(),
-                createdBy: currentUser.name
+                createdAt: editId ? bills.find(b => b.id == editId).createdAt : new Date().toISOString(),
+                createdBy: editId ? bills.find(b => b.id == editId).createdBy : currentUser.name,
+                updatedAt: editId ? new Date().toISOString() : null,
+                updatedBy: editId ? currentUser.name : null
             };
             
-            bills.push(formData);
+            if (editId) {
+                // Update existing bill
+                const index = bills.findIndex(b => b.id == editId);
+                if (index !== -1) {
+                    bills[index] = formData;
+                    showSuccessModal('Data tagihan berhasil diperbarui!');
+                }
+            } else {
+                // Add new bill
+                bills.push(formData);
+                showSuccessModal('Data tagihan berhasil disimpan!');
+            }
+            
             localStorage.setItem('bills', JSON.stringify(bills));
             
             // Reset form
-            this.reset();
-            
-            // Show success message
-            showSuccessModal('Data tagihan berhasil disimpan!');
+            resetForm();
             
             // Update dashboard and history
             updateDashboard();
             loadBillsHistory();
+        });
+
+        // Cancel edit
+        document.getElementById('cancelEdit').addEventListener('click', function() {
+            resetForm();
+        });
+
+        // Reset form function
+        function resetForm() {
+            document.getElementById('billingForm').reset();
+            document.getElementById('editId').value = '';
+            document.getElementById('formTitle').textContent = 'Tambah Data Tagihan';
+            document.getElementById('submitText').textContent = 'Simpan Tagihan';
+            document.getElementById('cancelEdit').classList.add('hidden');
+            editingId = null;
+        }
+
+        // Edit bill function
+        function editBill(id) {
+            const bill = bills.find(b => b.id == id);
+            if (!bill) return;
+            
+            // Fill form with bill data
+            document.getElementById('editId').value = bill.id;
+            document.getElementById('customerName').value = bill.customerName;
+            document.getElementById('customerPhone').value = bill.customerPhone;
+            document.getElementById('customerAddress').value = bill.customerAddress;
+            document.getElementById('billAmount').value = bill.amount;
+            document.getElementById('dueDate').value = bill.dueDate;
+            document.getElementById('paymentMethod').value = bill.paymentMethod;
+            document.getElementById('billStatus').value = bill.status;
+            document.getElementById('billDescription').value = bill.description || '';
+            document.getElementById('officerName').value = bill.officerName || '';
+            
+            // Update form UI
+            document.getElementById('formTitle').textContent = 'Edit Data Tagihan';
+            document.getElementById('submitText').textContent = 'Update Tagihan';
+            document.getElementById('cancelEdit').classList.remove('hidden');
+            
+            // Switch to billing tab
+            showTab('billing');
+            editingId = id;
+        }
+
+        // Delete bill function
+        function deleteBill(id) {
+            deleteId = id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        // Delete modal handlers
+        document.getElementById('cancelDelete').addEventListener('click', function() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            deleteId = null;
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', function() {
+            if (deleteId) {
+                bills = bills.filter(b => b.id != deleteId);
+                localStorage.setItem('bills', JSON.stringify(bills));
+                
+                showSuccessModal('Data tagihan berhasil dihapus!');
+                updateDashboard();
+                loadBillsHistory();
+                
+                document.getElementById('deleteModal').classList.add('hidden');
+                deleteId = null;
+            }
         });
 
         // Dashboard functions
@@ -623,7 +787,7 @@
         // History functions
         function loadBillsHistory() {
             const billsList = document.getElementById('billsList');
-            let filteredBills = bills;
+            let filteredBills = [...bills];
             
             // Apply filters
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -643,7 +807,7 @@
                 billsList.innerHTML = '<p class="text-gray-500 text-center py-8">Tidak ada data yang ditemukan</p>';
             } else {
                 billsList.innerHTML = filteredBills.reverse().map(bill => `
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                    <div class="bg-white rounded-lg p-4 space-y-3 shadow-sm border border-gray-200">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
                             <div class="flex-1">
                                 <h4 class="font-semibold text-gray-800">${bill.customerName}</h4>
@@ -662,7 +826,20 @@
                         </div>
                         ${bill.officerName ? `<div class="text-sm text-gray-600"><strong>Petugas:</strong> ${bill.officerName}</div>` : ''}
                         ${bill.description ? `<div class="text-sm text-gray-600"><strong>Keterangan:</strong> ${bill.description}</div>` : ''}
-                        <div class="text-xs text-gray-500">Dibuat oleh: ${bill.createdBy}</div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-xs text-gray-500">
+                                Dibuat oleh: ${bill.createdBy}
+                                ${bill.updatedAt ? `<br>Diperbarui: ${new Date(bill.updatedAt).toLocaleDateString('id-ID')} oleh ${bill.updatedBy}` : ''}
+                            </div>
+                            <div class="flex space-x-2">
+                                <button onclick="editBill(${bill.id})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                <button onclick="deleteBill(${bill.id})" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                                    <i class="fas fa-trash mr-1"></i>Hapus
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 `).join('');
             }
@@ -784,5 +961,5 @@
         // Initialize the application
         initApp();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993f3ea2c16c40a3',t:'MTc2MTM2OTQxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'993f58284449fd79',t:'MTc2MTM3MDQ2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
